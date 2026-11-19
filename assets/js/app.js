@@ -309,6 +309,42 @@
         return 'state';
     }
 
+    function friendlyState(state) {
+        if (state === 'queued') { return 'Waiting to start'; }
+        if (state === 'running') { return 'Converting now'; }
+        if (state === 'done') { return 'Finished'; }
+        if (state === 'error') { return 'Needs attention'; }
+        return state;
+    }
+
+    // Big, plain-language progress card for the job currently being worked on.
+    function renderActiveProgress(jobs) {
+        var card = val('active-progress');
+        var active = null;
+        for (var i = 0; i < jobs.length; i++) {
+            if (jobs[i].state === 'running') { active = jobs[i]; break; }
+        }
+        if (!active) {
+            for (var j = 0; j < jobs.length; j++) {
+                if (jobs[j].state === 'queued') { active = jobs[j]; break; }
+            }
+        }
+        if (!active) {
+            card.hidden = true;
+            return;
+        }
+        card.hidden = false;
+        var pct = Math.max(0, Math.min(100, Number(active.progress) || 0));
+        val('ap-label').textContent = friendlyState(active.state);
+        val('ap-percent').textContent = pct + '%';
+        val('ap-fill').style.width = pct + '%';
+        card.setAttribute('aria-valuenow', String(pct));
+        val('ap-file').textContent = (active.files && active.files[0]) ? active.files[0].name : active.id;
+        val('ap-detail').textContent = active.speed
+            ? 'Working at ' + active.speed
+            : (active.state === 'queued' ? 'Waiting for a free worker…' : 'Getting everything ready…');
+    }
+
     function renderQueue(jobs) {
         var list = val('queue-list');
         list.innerHTML = '';
@@ -365,7 +401,7 @@
             meta.className = 'row';
             var state = document.createElement('span');
             state.className = stateClass(job.state);
-            state.textContent = job.state + (job.speed ? ' · ' + job.speed : '');
+            state.textContent = friendlyState(job.state) + (job.speed ? ' · ' + job.speed : '');
             var pct = document.createElement('span');
             pct.className = 'pct';
             pct.textContent = (job.progress || 0) + '%';
@@ -406,6 +442,7 @@
     function refreshQueue() {
         return api('api/jobs.php').then(function (data) {
             renderQueue(data.jobs);
+            renderActiveProgress(data.jobs);
             if (selectedJobId) { loadLog(selectedJobId); }
         }).catch(function () {});
     }

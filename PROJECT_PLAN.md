@@ -4,7 +4,7 @@
 **Working codename:** VidCrunch (optional brand name)
 **Location:** `C:\xampp\htdocs\audio-and-video-tool`
 **Local URL:** `http://localhost/audio-and-video-tool/`
-**Current status:** Steps 1–13 complete and tested; Steps 14–16 complete (Netflix theme, logo, client-friendly status). Ready for further edits.
+**Current status:** Steps 1–13 complete and tested; Steps 14–17 complete (Netflix theme, logo, client-friendly status, large progress bar). Ready for further edits.
 
 ---
 
@@ -128,6 +128,7 @@ audio-and-video-tool/
 | 14 | Netflix colours + fonts | **DONE** | CSS-only change in `assets/css/style.css`: Netflix red `#e50914` accent, near-black `#000/#141414/#181818` surfaces, white/`#b3b3b3` type, Netflix green `#46d369` for success, sharper 4 px corners, red header top bar, red active-tab edge, red progress/glow, bold Helvetica Neue stack (closest local match to proprietary Netflix Sans). Light theme keeps the red accent. |
 | 15 | Add project logo | **DONE** | Copied `download (10).jpg` (736×736) from Downloads to `assets/images/logo.jpg`, generated a 256×256 `logo.png`. Header now shows the logo beside the app name; PNG used as favicon; README shows the logo at the top. All CSS changes stayed in `style.css`. |
 | 16 | Client-friendly wording | **DONE** | Status chip now says "Ready to convert" / "Needs setup" / "Can't check right now" with a coloured dot; the FFmpeg version moved into a hover tooltip for technical users. Tagline simplified to plain English. |
+| 17 | Large conversion progress bar | **DONE** | Added a prominent `#active-progress` card above the queue with a big percentage, thick red animated bar, file name and speed. Plain-language states: "Waiting to start" / "Converting now" / "Finished" / "Needs attention". CSS in `style.css`, logic in `app.js`. **Bug fixed:** FFmpeg progress and stderr came through `proc_open` pipes. On Windows the pipe buffer is tiny and `stream_set_blocking(false)` is unreliable — `fgets()` blocked on a half-written line, the buffer filled and long encodes froze (reproduced at 9%, then 0%). Progress and stderr now write to files (`logs/<job>.progress`, `logs/<job>.log`) and the worker polls them, so deadlocks are impossible. Verified: a 120 s sample advanced 0→10→…→100% and finished in 16 s; browser card showed 14% mid-encode then hid on completion. Audio, custom, media and health jobs now pass probed duration so their bars also move. |
 
 ### Bugs found and fixed during testing
 1. **Encoder detection** matched only QSV encoders (flag class missed `D`, `F`, `X`, `B`; legend line captured `=`). Fixed regex + name validation.

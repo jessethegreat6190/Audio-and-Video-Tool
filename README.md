@@ -24,7 +24,7 @@ A **local-first** video compression and audio extraction workbench. One tool tha
 - Apply FFmpeg filter strings, merge files (concat), edit metadata, image (optional audio) → video
 
 ### Automation
-- Batch queue with **progress bars, live logs, speed, cancel/remove/clear** and downloadable outputs
+- Batch queue with a **large percentage progress panel** while converting, plus per-job bars, live logs, speed, cancel/remove/clear and downloadable outputs
 - **Folder watching**: recursive scan, skip existing files, optional continuous polling, different presets per watcher, finished files copied to a destination folder
 - Saved presets with **shareable links** and custom FFmpeg argument jobs
 - Health check / repair for corrupt files and a 10-second H.265 benchmark

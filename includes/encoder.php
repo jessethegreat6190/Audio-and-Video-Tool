@@ -163,66 +163,97 @@ function avt_video_args($job, $encoder, $bitrate, $output, $pass)
     return $args;
 }
 
-/** Run FFmpeg with progress parsing and log capture. */
+/**
+ * Parse FFmpeg's -progress output (one key=value per line, repeated every 0.5 s).
+ * Returns the parsed variables and the byte offset of the last complete line.
+ */
+function avt_parse_progress($text, $from, $duration, &$maxProgress, &$speed)
+{
+    $lines = explode("\n", substr($text, $from));
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if (strpos($line, 'out_time_ms=') === 0 && $duration > 0) {
+            $us = (float) substr($line, 12);
+            $pct = min(99, (int) floor($us / ($duration * 1000000) * 100));
+            if ($pct > $maxProgress) {
+                $maxProgress = $pct;
+            }
+        } elseif (strpos($line, 'speed=') === 0) {
+            $speed = substr($line, 6);
+        } elseif (strpos($line, 'progress=end') === 0) {
+            $maxProgress = 100;
+        }
+    }
+    return strlen($text);
+}
+
+/**
+ * Run FFmpeg with progress parsing and log capture.
+ *
+ * Progress and stderr go to files, NOT pipes. On Windows the pipe buffer is
+ * tiny and stream_set_blocking(false) is not reliable for proc_open pipes:
+ * fgets() can block on a half-written line, the buffer fills, FFmpeg stalls
+ * and the job freezes at a low percentage. Files cannot deadlock.
+ */
 function avt_run_process($job, $args, $duration)
 {
-    $cmd = array_merge(array(FFMPEG_BINARY, '-y', '-hide_banner', '-nostats', '-progress', 'pipe:1'), $args);
-    $descriptors = array(0 => array('pipe', 'r'), 1 => array('pipe', 'w'), 2 => array('pipe', 'w'));
+    $logPath = LOG_DIR . DIRECTORY_SEPARATOR . $job['id'] . '.log';
+    $progressPath = LOG_DIR . DIRECTORY_SEPARATOR . $job['id'] . '.progress';
+    $stdoutPath = LOG_DIR . DIRECTORY_SEPARATOR . $job['id'] . '.stdout';
+    @unlink($progressPath);
+    @unlink($stdoutPath);
+
+    $cmd = array_merge(array(FFMPEG_BINARY, '-y', '-hide_banner', '-nostats', '-progress', $progressPath), $args);
+    $descriptors = array(
+        0 => array('pipe', 'r'),
+        1 => array('file', $stdoutPath, 'w'),
+        2 => array('file', $logPath, 'a'),
+    );
     $pipes = array();
     $proc = @proc_open($cmd, $descriptors, $pipes, BASE_PATH);
     if (!is_resource($proc)) {
         return array(false, 'Could not start FFmpeg');
     }
     fclose($pipes[0]);
-    stream_set_blocking($pipes[1], false);
-    stream_set_blocking($pipes[2], false);
 
     $lastUpdate = 0;
     $maxProgress = 0;
     $speed = '';
-    $stderr = '';
+    $parsed = 0;
 
     while (true) {
         $status = proc_get_status($proc);
-        $line = fgets($pipes[1]);
-        if ($line !== false) {
-            $line = trim($line);
-            if (strpos($line, 'out_time_ms=') === 0 && $duration > 0) {
-                $us = (float) substr($line, 12);
-                $pct = min(99, (int) floor($us / ($duration * 1000000) * 100));
-                if ($pct > $maxProgress) {
-                    $maxProgress = $pct;
-                }
-            } elseif (strpos($line, 'speed=') === 0) {
-                $speed = substr($line, 6);
-            }
-            if (microtime(true) - $lastUpdate > 1) {
-                avt_jobs_update($job['id'], array('progress' => $maxProgress, 'speed' => $speed));
-                $lastUpdate = microtime(true);
+
+        // Only parse complete lines; keep a partial final line for the next poll.
+        $raw = @file_get_contents($progressPath);
+        if ($raw !== false && strlen($raw) > $parsed) {
+            $lastNl = strrpos(substr($raw, $parsed), "\n");
+            if ($lastNl !== false) {
+                $end = $parsed + $lastNl + 1;
+                $parsed = avt_parse_progress(substr($raw, 0, $end), $parsed, $duration, $maxProgress, $speed);
             }
         }
-        $err = fgets($pipes[2]);
-        if ($err !== false && $err !== '') {
-            $stderr .= $err;
-            if (strlen($stderr) < 200000) {
-                @file_put_contents(LOG_DIR . DIRECTORY_SEPARATOR . $job['id'] . '.log', $err, FILE_APPEND);
-            }
+
+        if (microtime(true) - $lastUpdate > 0.5) {
+            avt_jobs_update($job['id'], array('progress' => $maxProgress, 'speed' => $speed));
+            $lastUpdate = microtime(true);
         }
+
         if (!$status['running']) {
             break;
         }
         usleep(100000);
     }
 
-    // Drain remaining output.
-    $stderr .= stream_get_contents($pipes[2]);
-    $tail = stream_get_contents($pipes[1]);
-    if (strpos($tail, 'progress=end') !== false) {
-        $maxProgress = 100;
+    // Final parse, then collect the FFmpeg error output from the log file.
+    $raw = @file_get_contents($progressPath);
+    if ($raw !== false && strlen($raw) > $parsed) {
+        avt_parse_progress($raw, $parsed, $duration, $maxProgress, $speed);
     }
-    fclose($pipes[1]);
-    fclose($pipes[2]);
     $code = proc_close($proc);
+    $stderr = (string) @file_get_contents($logPath);
+    @unlink($progressPath);
+    @unlink($stdoutPath);
 
     avt_jobs_update($job['id'], array('progress' => $code === 0 ? 100 : $maxProgress, 'speed' => $speed));
     return array($code === 0, trim($stderr));
@@ -304,7 +335,8 @@ function avt_encode_audio($job)
         }
         $args[] = $output;
     }
-    $r = avt_run_process($job, $args, 0);
+    $duration = avt_duration($job['files'][0]['stored']);
+    $r = avt_run_process($job, $args, $duration);
     return $r[0] ? array(true, 'Done', $output) : array(false, substr($r[1], -500), null);
 }
 
@@ -316,7 +348,7 @@ function avt_custom_job($job)
     $template = avt_clean($o['command'] ?? '', 2000);
     $extra = avt_split_args($template);
     $args = array_merge(array('-i', $input), $extra, array($output));
-    $r = avt_run_process($job, $args, 0);
+    $r = avt_run_process($job, $args, avt_duration($input));
     return $r[0] ? array(true, 'Done', $output) : array(false, substr($r[1], -500), null);
 }
 
@@ -329,7 +361,7 @@ function avt_health_job($job)
     }
     $output = avt_output_path($job, 'mkv');
     $args = array('-i', $job['files'][0]['stored'], '-c', 'copy', $output);
-    $r = avt_run_process($job, $args, 0);
+    $r = avt_run_process($job, $args, avt_duration($job['files'][0]['stored']));
     return $r[0] ? array(true, 'Repaired by remux', $output) : array(false, 'Corrupt and repair failed: ' . substr($r[1], -400), null);
 }
 
@@ -406,7 +438,7 @@ function avt_media_job($job, $encoders)
         $args[] = 'copy';
         $args[] = $output;
     }
-    $r = avt_run_process($job, $args, 0);
+    $r = avt_run_process($job, $args, avt_duration($inputs[0]));
     return $r[0] ? array(true, 'Done', $output) : array(false, substr($r[1], -500), null);
 }
 

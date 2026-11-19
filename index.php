@@ -341,6 +341,17 @@ require __DIR__ . '/includes/config.php';
                     <h2>Queue</h2>
                     <button type="button" id="clear-queue" class="btn btn-ghost btn-small">Clear</button>
                 </div>
+                <div id="active-progress" class="active-progress" role="progressbar" aria-label="Conversion progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden>
+                    <div class="ap-top">
+                        <span id="ap-label">Converting now</span>
+                        <strong id="ap-percent">0%</strong>
+                    </div>
+                    <div class="ap-track"><div id="ap-fill" class="ap-fill"></div></div>
+                    <div class="ap-bottom">
+                        <span id="ap-file">—</span>
+                        <span id="ap-detail">Getting ready…</span>
+                    </div>
+                </div>
                 <ul id="queue-list" class="queue-list">
                     <li class="empty">No jobs yet.</li>
                 </ul>
