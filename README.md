@@ -30,7 +30,7 @@ A **local-first** video compression and audio extraction workbench. One tool tha
 ## Quick start (XAMPP / local PHP)
 
 1. Put the folder at `C:\xampp\htdocs\audio-and-video-tool`.
-2. The bundled `bin/ffmpeg.exe` and `bin/ffprobe.exe` are used automatically on Windows.
+2. **FFmpeg setup:** the ~344 MB Windows binaries are intentionally **not committed**. Download a static Windows build and place `ffmpeg.exe` and `ffprobe.exe` in `bin/`, or set the `FFMPEG_BINARY` / `FFPROBE_BINARY` environment variables. On Docker/Linux, FFmpeg is installed by the package manager and found on `PATH`.
 3. Start Apache, then open `http://localhost/audio-and-video-tool/`.
    - Or use the built-in server: `C:\xampp\php\php.exe -S 127.0.0.1:8080 -t C:\xampp\htdocs\audio-and-video-tool`
 4. The status chip in the header must read **Engine ready**.
