@@ -4,7 +4,66 @@
 
 A **local-first** video compression and audio extraction workbench. One tool that combines the useful parts of 8mb.local, ffmpeg-web, ffmpeg-commander and HBBatchBeast — without cloud storage, accounts, iOS apps, encrypted output or cloud fallback.
 
-**Status:** complete implementation, tested end-to-end on 19 Nov 2026. See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the full build log. Inspiration credits are in [CREDITS.md](CREDITS.md).
+**Status:** complete implementation, tested end-to-end on 19 Nov 2026 — as a PHP web app, a **Windows EXE**, and an **Android APK**. See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the full build log. Inspiration credits are in [CREDITS.md](CREDITS.md).
+
+## Desktop app (Windows) and Android app
+
+The same UI powers three packages:
+
+| Package | How it runs | Files |
+|---|---|---|
+| Web (XAMPP/Docker) | PHP backend + bundled FFmpeg | see below |
+| Windows EXE | Electron starts a local Node server on `127.0.0.1` and shows the UI in a window | `app/dist/*Setup*.exe`, `app/dist/*Portable*.exe` |
+| Android APK | Capacitor WebView + on-device API shim + FFmpegKit | `app/dist/*.apk` |
+
+**No internet or account is needed in any version.** Files never leave the device.
+
+### Build the Windows EXE
+
+Requires Node.js 20+ and the FFmpeg binaries in `bin/`.
+
+```bash
+cd app
+npm install
+npm run dist:exe
+```
+
+Outputs go to `app/dist/`:
+- `Audio-and-Video-Tool-<version>-Setup-x64.exe` — installer (choose install folder, desktop shortcut)
+- `Audio-and-Video-Tool-<version>-Portable-x64.exe` — portable, no installation
+
+Both bundle `ffmpeg.exe` / `ffprobe.exe`. App data lives in `%APPDATA%/Audio and Video Tool/data`.
+
+### Build the Android APK
+
+Requires Node.js 20+, Java 17, and the Android SDK (platform 33, build-tools 33.0.2). Set `ANDROID_HOME` / `ANDROID_SDK_ROOT` first.
+
+```bash
+cd app
+npm install
+npm run cap:sync
+cd android
+gradlew assembleRelease
+```
+
+The APK lands in `android/app/build/outputs/apk/release/app-release.apk`. It includes FFmpegKit for arm64-v8a and armeabi-v7a.
+
+The self-signed development keystore is **not committed**. Before a release build, create one (or point `android/app/build.gradle` at your own key):
+
+```bash
+keytool -genkeypair -v -keystore android/app/avt-release.keystore -alias avt `
+  -keyalg RSA -keysize 2048 -validity 10000 `
+  -storepass avt2026release -keypass avt2026release `
+  -dname "CN=Audio and Video Tool, OU=Local Tools, O=Audio and Video Tool, L=Local, ST=Local, C=US"
+```
+
+The passwords above match `android/app/build.gradle`. Change them for any public release. For a quick local test without signing, use `gradlew assembleDebug` instead.
+
+**Android limitations:** folder watching is not available (mobile apps cannot run background folder daemons). Everything else — compression, extraction, filters, presets, progress, and opening finished files — works on-device.
+
+### Why binaries are not in the repository
+
+The EXE (~195 MB) exceeds GitHub's 100 MB file limit, and both EXE and APK are reproducible from source. Build outputs under `app/dist/`, `app/www/`, `node_modules/`, and `android/app/build/` are gitignored.
 
 ## What it does
 

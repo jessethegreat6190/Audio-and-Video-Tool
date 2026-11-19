@@ -1,0 +1,8 @@
+{
+  "appId": "com.audiovideotool.local",
+  "appName": "Audio and Video Tool",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": true
+  }
+}

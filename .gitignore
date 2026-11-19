@@ -9,3 +9,19 @@ presets.json
 watchers.json
 *.log
 .DS_Store
+
+# Native app build output (large binaries — build locally, see README)
+app/node_modules/
+app/dist/
+app/android/.gradle/
+app/android/build/
+app/android/app/build/
+app/android/local.properties
+app/www/
+
+# Android release signing key — regenerate before publishing your own build
+app/android/app/*.keystore
+
+# Local runtime data
+app/data/
+app/logs/

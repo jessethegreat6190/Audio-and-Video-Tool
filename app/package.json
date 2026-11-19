@@ -1,0 +1,68 @@
+{
+  "name": "audio-and-video-tool",
+  "productName": "Audio and Video Tool",
+  "version": "0.3.0",
+  "description": "Local video compression and audio extraction workbench",
+  "main": "electron/main.js",
+  "private": true,
+  "scripts": {
+    "postinstall": "node patch-ffmpeg.js",
+    "start": "node server.js",
+    "copy:web": "node copy-web.js",
+    "icons": "python make-icons.py",
+    "electron": "electron .",
+    "dist:exe": "npm run copy:web && node build-exe.js",
+    "cap:init": "npx cap add android",
+    "cap:sync": "npm run copy:web && npx cap sync android",
+    "apk:debug": "npm run cap:sync && cd android && gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor-community/file-opener": "^1.0.6",
+    "@capacitor/core": "^5.7.8",
+    "@capacitor/filesystem": "^5.2.2",
+    "capacitor-ffmpeg-kit": "^0.0.5"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^5.7.8",
+    "@capacitor/cli": "^5.7.8",
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "com.audiovideotool.local",
+    "productName": "Audio and Video Tool",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "server.js",
+      "lib/**/*",
+      "electron/**/*",
+      "www/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../bin/ffmpeg.exe",
+        "to": "bin/ffmpeg.exe"
+      },
+      {
+        "from": "../bin/ffprobe.exe",
+        "to": "bin/ffprobe.exe"
+      }
+    ],
+    "win": {
+      "icon": "../assets/images/logo.png",
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}

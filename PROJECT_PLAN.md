@@ -4,7 +4,7 @@
 **Working codename:** VidCrunch (optional brand name)
 **Location:** `C:\xampp\htdocs\audio-and-video-tool`
 **Local URL:** `http://localhost/audio-and-video-tool/`
-**Current status:** Steps 1–13 complete and tested; Steps 14–17 complete (Netflix theme, logo, client-friendly status, large progress bar). Ready for further edits.
+**Current status:** Steps 1–21 complete and tested. Web app (PHP) + Windows EXE + Android APK all built from the same UI.
 
 ---
 
@@ -129,6 +129,27 @@ audio-and-video-tool/
 | 15 | Add project logo | **DONE** | Copied `download (10).jpg` (736×736) from Downloads to `assets/images/logo.jpg`, generated a 256×256 `logo.png`. Header now shows the logo beside the app name; PNG used as favicon; README shows the logo at the top. All CSS changes stayed in `style.css`. |
 | 16 | Client-friendly wording | **DONE** | Status chip now says "Ready to convert" / "Needs setup" / "Can't check right now" with a coloured dot; the FFmpeg version moved into a hover tooltip for technical users. Tagline simplified to plain English. |
 | 17 | Large conversion progress bar | **DONE** | Added a prominent `#active-progress` card above the queue with a big percentage, thick red animated bar, file name and speed. Plain-language states: "Waiting to start" / "Converting now" / "Finished" / "Needs attention". CSS in `style.css`, logic in `app.js`. **Bug fixed:** FFmpeg progress and stderr came through `proc_open` pipes. On Windows the pipe buffer is tiny and `stream_set_blocking(false)` is unreliable — `fgets()` blocked on a half-written line, the buffer filled and long encodes froze (reproduced at 9%, then 0%). Progress and stderr now write to files (`logs/<job>.progress`, `logs/<job>.log`) and the worker polls them, so deadlocks are impossible. Verified: a 120 s sample advanced 0→10→…→100% and finished in 16 s; browser card showed 14% mid-encode then hid on completion. Audio, custom, media and health jobs now pass probed duration so their bars also move. |
+
+## 9. Native apps — Windows EXE + Android APK
+
+**Delivered files** (built locally, not committed because GitHub rejects files over 100 MB):
+- `app/dist/Audio-and-Video-Tool-0.3.0-Setup-x64.exe` — Windows installer
+- `app/dist/Audio-and-Video-Tool-0.3.0-Portable-x64.exe` — Windows portable
+- `app/dist/Audio-and-Video-Tool-0.3.0.apk` — signed Android release APK
+
+Rebuild with `npm install && npm run dist:exe` (Windows) and `npm run cap:sync`, then `cd android && gradlew assembleRelease` (Android). See README for details.
+
+**Decision (19 Nov 2026):** build a single JavaScript backend so the same UI and job logic power both packages.
+- Windows: Electron shell starts the local Node server on `127.0.0.1` and shows it in a window. electron-builder produces an NSIS installer and a portable `.exe`. PHP is no longer needed at runtime.
+- Android: Capacitor WebView loads the same UI; a browser-side API shim uses Capacitor Filesystem for storage and a native FFmpeg plugin for encoding. Folder watching is limited on Android (no background daemon), but all encode/extract/filter tools work.
+- Keeps the current PHP version untouched as a working reference; the JS implementation lives under `app/`.
+
+| Step | Task | Status | Notes |
+|---|---|---|---|
+| 18 | Port backend to Node.js with API parity | **DONE** | `app/server.js` + `app/lib/*` (config, util, store, encoder, watchers). Same endpoints and JSON job format as PHP. Progress + stderr written to files, so no pipe deadlocks. Smoke test: upload → job `job_20261119084334_8844aa1e` reached `state=done`, `progress=100%`, speed 24.2x; output was valid H.264 320x240. |
+| 19 | Static frontend copy + native API shim | **DONE** | `app/copy-web.js` builds `app/www/` from `index.php` + `assets/`, strips PHP tags, copies `native/avt-api.js`, and injects a `fetch()` shim into the copied `app.js`. On Android the shim implements every API endpoint on-device with Capacitor Filesystem + FFmpegKit; upload captures media duration so the percentage bar works. |
+| 20 | Windows EXE build | **DONE** | Electron main process starts the Node server on a free `127.0.0.1` port with data in `%APPDATA%/Audio and Video Tool/data`. electron-builder produces **NSIS Setup** and **portable** EXEs with `bin/ffmpeg.exe` + `ffprobe.exe` bundled. `npm run dist:exe` builds both with distinct filenames (see `app/build-exe.js`). Smoke tested the portable build: valid H.264 output, 100% progress. |
+| 21 | Android APK build | **DONE** | Capacitor 5 + `@capacitor/filesystem`, patched `capacitor-ffmpeg-kit` (promise resolution + time-based progress) and `@capacitor-community/file-opener`. FFmpegKit 6.0.LTS comes from a public mirror because Maven Central removed it. Android SDK cmdline-tools + platform 33 + build-tools 33.0.2 installed locally; signed release APK built and verified (FFmpeg `.so` libs for arm64-v8a + armeabi-v7a present, signature valid). Folder watching is intentionally unavailable in the mobile sandbox. |
 
 ### Bugs found and fixed during testing
 1. **Encoder detection** matched only QSV encoders (flag class missed `D`, `F`, `X`, `B`; legend line captured `=`). Fixed regex + name validation.
