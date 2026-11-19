@@ -1,0 +1,11 @@
+/uploads/*
+/outputs/*
+/logs/*
+/jobs/*
+!.gitkeep
+/bin/*
+!/bin/.gitkeep
+presets.json
+watchers.json
+*.log
+.DS_Store

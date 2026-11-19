@@ -1,0 +1,8 @@
+bin/
+uploads/*
+outputs/*
+logs/*
+jobs/*
+!**/.gitkeep
+.git/
+*.md
