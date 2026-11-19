@@ -132,7 +132,9 @@ audio-and-video-tool/
 
 ## 9. Native apps — Windows EXE + Android APK
 
-**Delivered files** (built locally, not committed because GitHub rejects files over 100 MB):
+**Published downloads:** https://github.com/jessethegreat6190/Audio-and-Video-Tool/releases/latest — all three installers are attached to the `v0.3.0` GitHub Release. Release assets can be up to 2 GB each, unlike files committed into the repo (100 MB limit), so users can download the apps directly from there.
+
+**Built files** (generated locally, not committed into the repo):
 - `app/dist/Audio-and-Video-Tool-0.3.0-Setup-x64.exe` — Windows installer
 - `app/dist/Audio-and-Video-Tool-0.3.0-Portable-x64.exe` — Windows portable
 - `app/dist/Audio-and-Video-Tool-0.3.0.apk` — signed Android release APK

@@ -6,6 +6,20 @@ A **local-first** video compression and audio extraction workbench. One tool tha
 
 **Status:** complete implementation, tested end-to-end on 19 Nov 2026 — as a PHP web app, a **Windows EXE**, and an **Android APK**. See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the full build log. Inspiration credits are in [CREDITS.md](CREDITS.md).
 
+## Download the ready-made apps
+
+**👉 [Download Windows installer, portable EXE, or Android APK](https://github.com/jessethegreat6190/Audio-and-Video-Tool/releases/latest)**
+
+Each release has three files:
+
+| Your device | File to download |
+|---|---|
+| Windows — install it | `Audio-and-Video-Tool-<version>-Setup-x64.exe` |
+| Windows — just run it, no install | `Audio-and-Video-Tool-<version>-Portable-x64.exe` |
+| Android phone or tablet | `Audio-and-Video-Tool-<version>.apk` |
+
+The APK is signed with a self-signed development certificate. Android may ask you to allow "Install unknown apps" before installing it. To build from source instead, see the sections below.
+
 ## Desktop app (Windows) and Android app
 
 The same UI powers three packages:
