@@ -556,10 +556,12 @@
         var chip = val('engine-status');
         chip.classList.remove('status-loading');
         if (data.ffmpeg && data.ffprobe) {
-            chip.textContent = 'Engine ready · ' + data.ffmpeg_version.split(',')[0];
+            chip.textContent = 'Ready to convert';
+            chip.title = 'All systems ready. Video engine: ' + data.ffmpeg_version.split(',')[0];
             chip.classList.add('status-ok');
         } else {
-            chip.textContent = 'FFmpeg not configured';
+            chip.textContent = 'Needs setup';
+            chip.title = 'The video engine was not found. Ask the person who set this up to install FFmpeg in the bin folder.';
             chip.classList.add('status-warn');
         }
         ['nvenc', 'qsv', 'amf'].forEach(function (gpu) {
@@ -571,7 +573,8 @@
         });
     }).catch(function () {
         var chip = val('engine-status');
-        chip.textContent = 'Status unavailable';
+        chip.textContent = "Can't check right now";
+        chip.title = "We couldn't reach the local status check. Refresh the page and try again.";
         chip.classList.add('status-warn');
     });
 

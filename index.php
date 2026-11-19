@@ -16,7 +16,7 @@ require __DIR__ . '/includes/config.php';
             <img src="assets/images/logo.jpg" alt="Audio and Video Tool logo" class="brand-logo">
             <div class="brand-text">
                 <h1><?php echo htmlspecialchars(APP_NAME); ?></h1>
-                <span class="tagline">Local video compression &amp; audio extraction workbench</span>
+                <span class="tagline">Shrink videos. Extract audio. All on your computer.</span>
             </div>
         </div>
         <div class="header-actions">

@@ -4,7 +4,7 @@
 **Working codename:** VidCrunch (optional brand name)
 **Location:** `C:\xampp\htdocs\audio-and-video-tool`
 **Local URL:** `http://localhost/audio-and-video-tool/`
-**Current status:** Steps 1–13 complete and tested; Steps 14–15 (Netflix theme + project logo) complete. Ready for further edits.
+**Current status:** Steps 1–13 complete and tested; Steps 14–16 complete (Netflix theme, logo, client-friendly status). Ready for further edits.
 
 ---
 
@@ -127,6 +127,7 @@ audio-and-video-tool/
 | 13 | Docker build + final README | **DONE** | `Dockerfile` (php:8.2-cli-alpine + ffmpeg), `.dockerignore`, final `README.md`. All 14 PHP files pass `php -l`; UI reloaded with no console errors. |
 | 14 | Netflix colours + fonts | **DONE** | CSS-only change in `assets/css/style.css`: Netflix red `#e50914` accent, near-black `#000/#141414/#181818` surfaces, white/`#b3b3b3` type, Netflix green `#46d369` for success, sharper 4 px corners, red header top bar, red active-tab edge, red progress/glow, bold Helvetica Neue stack (closest local match to proprietary Netflix Sans). Light theme keeps the red accent. |
 | 15 | Add project logo | **DONE** | Copied `download (10).jpg` (736×736) from Downloads to `assets/images/logo.jpg`, generated a 256×256 `logo.png`. Header now shows the logo beside the app name; PNG used as favicon; README shows the logo at the top. All CSS changes stayed in `style.css`. |
+| 16 | Client-friendly wording | **DONE** | Status chip now says "Ready to convert" / "Needs setup" / "Can't check right now" with a coloured dot; the FFmpeg version moved into a hover tooltip for technical users. Tagline simplified to plain English. |
 
 ### Bugs found and fixed during testing
 1. **Encoder detection** matched only QSV encoders (flag class missed `D`, `F`, `X`, `B`; legend line captured `=`). Fixed regex + name validation.
