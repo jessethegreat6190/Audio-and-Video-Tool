@@ -7,13 +7,17 @@ require __DIR__ . '/includes/config.php';
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?php echo htmlspecialchars(APP_NAME); ?></title>
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
     <header class="app-header">
         <div class="brand">
-            <h1><?php echo htmlspecialchars(APP_NAME); ?></h1>
-            <span class="tagline">Local video compression &amp; audio extraction workbench</span>
+            <img src="assets/images/logo.jpg" alt="Audio and Video Tool logo" class="brand-logo">
+            <div class="brand-text">
+                <h1><?php echo htmlspecialchars(APP_NAME); ?></h1>
+                <span class="tagline">Local video compression &amp; audio extraction workbench</span>
+            </div>
         </div>
         <div class="header-actions">
             <span id="engine-status" class="status-chip status-loading">Checking engine…</span>

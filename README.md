@@ -1,5 +1,7 @@
 # Audio and Video Tool
 
+![Audio and Video Tool logo](assets/images/logo.png)
+
 A **local-first** video compression and audio extraction workbench. One tool that combines the useful parts of 8mb.local, ffmpeg-web, ffmpeg-commander and HBBatchBeast — without cloud storage, accounts, iOS apps, encrypted output or cloud fallback.
 
 **Status:** complete implementation, tested end-to-end on 19 Nov 2026. See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the full build log. Inspiration credits are in [CREDITS.md](CREDITS.md).

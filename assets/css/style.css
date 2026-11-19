@@ -50,6 +50,15 @@ body {
     background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
 }
 
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-logo {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+}
 .brand h1 {
     margin: 0;
     font-size: 1.35rem;
