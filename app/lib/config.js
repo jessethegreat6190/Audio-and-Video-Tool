@@ -26,6 +26,8 @@ const FFMPEG_BINARY = process.env.FFMPEG_BINARY ||
     (IS_WINDOWS ? path.join(PROJECT_ROOT, 'bin', 'ffmpeg.exe') : 'ffmpeg');
 const FFPROBE_BINARY = process.env.FFPROBE_BINARY ||
     (IS_WINDOWS ? path.join(PROJECT_ROOT, 'bin', 'ffprobe.exe') : 'ffprobe');
+const YTDLP_BINARY = process.env.YTDLP_BINARY ||
+    (IS_WINDOWS ? path.join(PROJECT_ROOT, 'bin', 'yt-dlp.exe') : 'yt-dlp');
 
 for (const dir of [DATA_ROOT, UPLOAD_DIR, OUTPUT_DIR, LOG_DIR, JOBS_DIR, PASS_DIR]) {
     fs.mkdirSync(dir, { recursive: true });
@@ -48,4 +50,5 @@ module.exports = {
     WWW_DIR,
     FFMPEG_BINARY,
     FFPROBE_BINARY,
+    YTDLP_BINARY,
 };

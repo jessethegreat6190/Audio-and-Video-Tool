@@ -29,6 +29,7 @@ require __DIR__ . '/includes/config.php';
         <nav class="tabs" aria-label="Tool sections">
             <button type="button" class="tab active" data-tab="video">Video</button>
             <button type="button" class="tab" data-tab="audio">Audio</button>
+            <button type="button" class="tab" data-tab="social">Social Video</button>
             <button type="button" class="tab" data-tab="media">Media tools</button>
             <button type="button" class="tab" data-tab="batch">Batch / Watch</button>
             <button type="button" class="tab" data-tab="presets">Presets</button>
@@ -209,6 +210,34 @@ require __DIR__ . '/includes/config.php';
                         </div>
                     </form>
                     <p id="audio-message" class="message" role="status"></p>
+                </section>
+
+                <!-- SOCIAL VIDEO -->
+                <section id="tab-social" class="panel" data-panel="social">
+                    <h2>Download from a link</h2>
+                    <p class="hint">Paste a link from TikTok, X, Instagram, Facebook or another supported site. The video is saved to this computer — no account, no payment.</p>
+                    <div class="rule-note">
+                        Only download videos you made yourself, or videos you are allowed to save. Please do not use this to copy other people’s work without permission.
+                    </div>
+                    <form id="social-form" class="form-grid">
+                        <label class="wide">Video link
+                            <input type="url" id="s-url" placeholder="https://www.tiktok.com/..." required>
+                        </label>
+                        <label>Quality
+                            <select id="s-quality">
+                                <option value="best">Best available (MP4)</option>
+                                <option value="720">720p</option>
+                                <option value="480">480p</option>
+                                <option value="audio">Audio only (MP3)</option>
+                            </select>
+                        </label>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Add to queue</button>
+                            <button type="reset" class="btn btn-ghost">Clear</button>
+                        </div>
+                    </form>
+                    <p class="hint">Some sites ask you to be signed in. If a link does not work, open the job log to see why.</p>
+                    <p id="social-message" class="message" role="status"></p>
                 </section>
 
                 <!-- MEDIA -->

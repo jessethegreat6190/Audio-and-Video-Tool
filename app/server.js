@@ -161,6 +161,7 @@ async function route(req, res) {
             php_binary: process.execPath,
             ffmpeg: fs.existsSync(C.FFMPEG_BINARY),
             ffprobe: fs.existsSync(C.FFPROBE_BINARY),
+            ytdlp: fs.existsSync(C.YTDLP_BINARY),
             ffmpeg_version: U.ffmpegVersion(),
             encoders: {
                 libx264: has('libx264'), libx265: has('libx265'),
@@ -212,11 +213,16 @@ async function route(req, res) {
         if (method === 'POST') {
             const body = JSON.parse((await readBody(req)).toString('utf8') || '{}');
             const type = U.clean(body.type, 40);
-            if (!['video', 'audio', 'custom', 'health', 'benchmark', 'media'].includes(type)) {
+            if (!['video', 'audio', 'custom', 'health', 'benchmark', 'media', 'social'].includes(type)) {
                 json(res, { error: 'Unknown job type' }, 400); return;
             }
             const files = [];
             for (const f of (body.files || [])) {
+                // Social jobs have no uploaded file; the name is just the link for display.
+                if (type === 'social') {
+                    files.push({ name: U.clean(f.name || 'Video link', 300), stored: '', size: 0 });
+                    continue;
+                }
                 if (!f.stored || !U.isInside(f.stored, C.UPLOAD_DIR)) {
                     json(res, { error: 'Invalid uploaded file path' }, 400); return;
                 }

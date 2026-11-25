@@ -19,6 +19,7 @@ const binDir = isPackaged
     : path.resolve(__dirname, '..', '..', 'bin');
 process.env.FFMPEG_BINARY = path.join(binDir, 'ffmpeg.exe');
 process.env.FFPROBE_BINARY = path.join(binDir, 'ffprobe.exe');
+process.env.YTDLP_BINARY = path.join(binDir, 'yt-dlp.exe');
 
 // Keep all user data next to the app's userData folder, never inside Program Files.
 process.env.AVT_DATA_DIR = path.join(app.getPath('userData'), 'data');

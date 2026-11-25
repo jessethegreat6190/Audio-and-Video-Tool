@@ -218,6 +218,20 @@
         }, 'audio-message');
     });
 
+    val('social-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var url = val('s-url').value.trim();
+        if (!/^https?:\/\//i.test(url)) {
+            setMessage('social-message', 'Enter a link starting with http:// or https://', 'error');
+            return;
+        }
+        setMessage('social-message', 'Adding to the queue…');
+        createJob('social', [{ name: url }], {
+            url: url,
+            quality: val('s-quality').value
+        }, 'social-message');
+    });
+
     function parseMetadata(text) {
         var out = {};
         text.split(/\r?\n/).forEach(function (line) {
@@ -309,9 +323,9 @@
         return 'state';
     }
 
-    function friendlyState(state) {
+    function friendlyState(state, type) {
         if (state === 'queued') { return 'Waiting to start'; }
-        if (state === 'running') { return 'Converting now'; }
+        if (state === 'running') { return type === 'social' ? 'Downloading now' : 'Converting now'; }
         if (state === 'done') { return 'Finished'; }
         if (state === 'error') { return 'Needs attention'; }
         return state;
@@ -335,7 +349,7 @@
         }
         card.hidden = false;
         var pct = Math.max(0, Math.min(100, Number(active.progress) || 0));
-        val('ap-label').textContent = friendlyState(active.state);
+        val('ap-label').textContent = friendlyState(active.state, active.type);
         val('ap-percent').textContent = pct + '%';
         val('ap-fill').style.width = pct + '%';
         card.setAttribute('aria-valuenow', String(pct));
@@ -401,7 +415,7 @@
             meta.className = 'row';
             var state = document.createElement('span');
             state.className = stateClass(job.state);
-            state.textContent = friendlyState(job.state) + (job.speed ? ' · ' + job.speed : '');
+            state.textContent = friendlyState(job.state, job.type) + (job.speed ? ' · ' + job.speed : '');
             var pct = document.createElement('span');
             pct.className = 'pct';
             pct.textContent = (job.progress || 0) + '%';

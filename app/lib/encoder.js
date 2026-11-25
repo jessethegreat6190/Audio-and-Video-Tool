@@ -186,6 +186,99 @@ async function runProcess(job, args, duration) {
     return { ok: code === 0, stderr: stderr };
 }
 
+/** Social Video: download a link with the free yt-dlp tool. */
+function socialFormatArgs(quality) {
+    if (quality === 'audio') {
+        return ['-f', 'bestaudio', '--extract-audio', '--audio-format', 'mp3', '--audio-quality', '192K'];
+    }
+    if (quality === '720') {
+        return ['-f', 'best[height<=720][ext=mp4]/best[height<=720]/best', '--merge-output-format', 'mp4'];
+    }
+    if (quality === '480') {
+        return ['-f', 'best[height<=480][ext=mp4]/best[height<=480]/best', '--merge-output-format', 'mp4'];
+    }
+    return ['-f', 'bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/bv*+ba/b', '--merge-output-format', 'mp4'];
+}
+
+function findSocialOutput(jobId) {
+    const wanted = ['mp4', 'mkv', 'webm', 'mov', 'mp3', 'm4a', 'flac', 'opus', 'wav'];
+    let names = [];
+    try { names = fs.readdirSync(C.OUTPUT_DIR); } catch (e) { return null; }
+    for (const name of names) {
+        if (!name.startsWith(jobId + '_')) continue;
+        const ext = path.extname(name).toLowerCase().replace('.', '');
+        if (!wanted.includes(ext)) continue;
+        const full = path.join(C.OUTPUT_DIR, name);
+        if (fs.existsSync(full)) return full;
+    }
+    return null;
+}
+
+async function runSocial(job) {
+    const options = job.options || {};
+    const url = U.clean(options.url || '', 2000);
+    if (!/^https?:\/\/[^\/?#]+/i.test(url)) {
+        return { ok: false, message: 'Enter a valid link starting with http:// or https://', output: null };
+    }
+    const quality = U.clean(options.quality || 'best', 20);
+    const template = path.join(C.OUTPUT_DIR, job.id + '_%(title)s.%(ext)s');
+    const cmd = [C.YTDLP_BINARY,
+        '--no-playlist', '--newline', '--no-colors', '--restrict-filenames',
+        '--socket-timeout', '20', '--retries', '2'];
+    if (C.IS_WINDOWS && fs.existsSync(C.FFMPEG_BINARY)) {
+        cmd.push('--ffmpeg-location', path.dirname(C.FFMPEG_BINARY));
+    }
+    cmd.push(...socialFormatArgs(quality), '-o', template, url);
+
+    const logPath = path.join(C.LOG_DIR, path.basename(job.id) + '.log');
+    const logFd = fs.openSync(logPath, 'a');
+    let child;
+    try {
+        child = spawn(cmd[0], cmd.slice(1), { stdio: ['ignore', logFd, logFd], windowsHide: true });
+    } catch (e) {
+        fs.closeSync(logFd);
+        return { ok: false, message: 'Could not start the downloader. Is yt-dlp.exe in the bin folder?', output: null };
+    }
+    U.log(job.id, 'Downloading link: ' + url);
+    U.log(job.id, 'Quality: ' + quality);
+
+    let maxPercent = 0;
+    let lastUpdate = 0;
+    await new Promise(resolve => {
+        child.on('error', () => resolve());
+        child.on('close', () => resolve());
+        const timer = setInterval(() => {
+            let raw = '';
+            try { raw = fs.readFileSync(logPath, 'utf8'); } catch (e) { /* not written yet */ }
+            const re = /\[download\]\s+(\d+(?:\.\d+)?)%/g;
+            let match;
+            while ((match = re.exec(raw)) !== null) {
+                const value = parseFloat(match[1]);
+                if (value > maxPercent) maxPercent = value;
+            }
+            if (Date.now() - lastUpdate > 500) {
+                S.jobsUpdate(job.id, { progress: maxPercent > 0 ? Math.min(99, Math.floor(maxPercent)) : 1 });
+                lastUpdate = Date.now();
+            }
+            if (child.exitCode !== null || child.signalCode !== null) {
+                clearInterval(timer);
+                resolve();
+            }
+        }, 200);
+    });
+
+    fs.closeSync(logFd);
+    const code = child.exitCode;
+    const output = findSocialOutput(job.id);
+    if (code !== 0 || !output) {
+        let log = '';
+        try { log = fs.readFileSync(logPath, 'utf8').trim().slice(-700).replace(/\s+/g, ' '); } catch (e) { /* ignore */ }
+        return { ok: false, message: 'Download did not finish. ' + (log || 'Check the job log.'), output: null };
+    }
+    S.jobsUpdate(job.id, { progress: 100 });
+    return { ok: true, message: 'Saved ' + path.basename(output), output };
+}
+
 async function encodeVideo(job, available) {
     const o = job.options || {};
     const container = o.container || 'mp4';
@@ -308,17 +401,21 @@ async function mediaJob(job, available) {
 }
 
 async function runJob(job) {
-    const available = U.encoders();
     U.log(job.id, 'Starting job type: ' + job.type);
     let result;
     try {
-        if (job.type === 'video') result = await encodeVideo(job, available);
-        else if (job.type === 'audio') result = await encodeAudio(job);
-        else if (job.type === 'custom') result = await customJob(job);
-        else if (job.type === 'health') result = await healthJob(job);
-        else if (job.type === 'benchmark') result = await benchmarkJob(job);
-        else if (job.type === 'media') result = await mediaJob(job, available);
-        else result = { ok: false, message: 'Unknown job type', output: null };
+        if (job.type === 'social') {
+            result = await runSocial(job);
+        } else {
+            const available = U.encoders();
+            if (job.type === 'video') result = await encodeVideo(job, available);
+            else if (job.type === 'audio') result = await encodeAudio(job);
+            else if (job.type === 'custom') result = await customJob(job);
+            else if (job.type === 'health') result = await healthJob(job);
+            else if (job.type === 'benchmark') result = await benchmarkJob(job);
+            else if (job.type === 'media') result = await mediaJob(job, available);
+            else result = { ok: false, message: 'Unknown job type', output: null };
+        }
     } catch (e) {
         result = { ok: false, message: String(e.message || e), output: null };
     }

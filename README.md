@@ -30,7 +30,7 @@ The same UI powers three packages:
 | Windows EXE | Electron starts a local Node server on `127.0.0.1` and shows the UI in a window | `app/dist/*Setup*.exe`, `app/dist/*Portable*.exe` |
 | Android APK | Capacitor WebView + on-device API shim + FFmpegKit | `app/dist/*.apk` |
 
-**No internet or account is needed in any version.** Files never leave the device.
+**No account is needed in any version.** Conversion files never leave the device. The optional Social Video tab does need internet to fetch a link you paste; it does not upload anything from your computer.
 
 ### Build the Windows EXE
 
@@ -46,7 +46,7 @@ Outputs go to `app/dist/`:
 - `Audio-and-Video-Tool-<version>-Setup-x64.exe` — installer (choose install folder, desktop shortcut)
 - `Audio-and-Video-Tool-<version>-Portable-x64.exe` — portable, no installation
 
-Both bundle `ffmpeg.exe` / `ffprobe.exe`. App data lives in `%APPDATA%/Audio and Video Tool/data`.
+Both bundle `ffmpeg.exe`, `ffprobe.exe` and `yt-dlp.exe`. App data lives in `%APPDATA%/Audio and Video Tool/data`.
 
 ### Build the Android APK
 
@@ -73,7 +73,7 @@ keytool -genkeypair -v -keystore android/app/avt-release.keystore -alias avt `
 
 The passwords above match `android/app/build.gradle`. Change them for any public release. For a quick local test without signing, use `gradlew assembleDebug` instead.
 
-**Android limitations:** folder watching is not available (mobile apps cannot run background folder daemons). Everything else — compression, extraction, filters, presets, progress, and opening finished files — works on-device.
+**Android limitations:** folder watching is not available (mobile apps cannot run background folder daemons). Social Video link downloading is also not available on the phone app — use the Windows app or the web app for that. Everything else — compression, extraction, filters, presets, progress, and opening finished files — works on-device.
 
 ### Why binaries are not in the repository
 
@@ -93,6 +93,11 @@ The EXE (~195 MB) exceeds GitHub's 100 MB file limit, and both EXE and APK are r
 - **Extract audio from video**, convert audio files, and strip audio from video
 - MP3, M4A/AAC, FLAC, Opus, WAV with bitrate, sample rate, channels and optional loudness normalisation
 
+### Social Video
+- Paste a link and download it with the free, open-source **yt-dlp** tool (TikTok, X, Instagram, Facebook and many more sites)
+- Choose best quality, 720p, 480p, or audio-only MP3; progress shows on the same big bar
+- **Use it only for videos you made yourself or videos you are allowed to save.** The app never hosts or shares anything.
+
 ### Media tools
 - Apply FFmpeg filter strings, merge files (concat), edit metadata, image (optional audio) → video
 
@@ -105,7 +110,7 @@ The EXE (~195 MB) exceeds GitHub's 100 MB file limit, and both EXE and APK are r
 ## Quick start (XAMPP / local PHP)
 
 1. Put the folder at `C:\xampp\htdocs\audio-and-video-tool`.
-2. **FFmpeg setup:** the ~344 MB Windows binaries are intentionally **not committed**. Download a static Windows build and place `ffmpeg.exe` and `ffprobe.exe` in `bin/`, or set the `FFMPEG_BINARY` / `FFPROBE_BINARY` environment variables. On Docker/Linux, FFmpeg is installed by the package manager and found on `PATH`.
+2. **Engine setup:** the Windows binaries are intentionally **not committed**. Put `ffmpeg.exe`, `ffprobe.exe` and `yt-dlp.exe` in `bin/` (or set `FFMPEG_BINARY`, `FFPROBE_BINARY`, `YTDLP_BINARY`). On Docker/Linux, FFmpeg and yt-dlp are found on `PATH`. yt-dlp is only needed for the Social Video tab.
 3. Start Apache, then open `http://localhost/audio-and-video-tool/`.
    - Or use the built-in server: `C:\xampp\php\php.exe -S 127.0.0.1:8080 -t C:\xampp\htdocs\audio-and-video-tool`
 4. The status chip in the header must read **Engine ready**.
@@ -124,9 +129,9 @@ Then open `http://localhost:8080/`. On Linux the image uses the `ffmpeg` from Al
 ## Project layout
 
 ```
-index.php          UI shell — 6 tabs + queue
+index.php          UI shell — 7 tabs + queue
 worker.php         queue worker and watcher scanner
-includes/          config, helpers, job store, encoder, watchers
+includes/          config, helpers, job store, encoder, social (yt-dlp), watchers
 api/               status, upload, jobs, job, presets, watchers, download
 assets/css/        ALL CSS (separate file)
 assets/js/         ALL JavaScript (separate file)
@@ -137,7 +142,7 @@ bin/               bundled FFmpeg binaries (Windows, gitignored)
 
 | Endpoint | Method | Purpose |
 |---|---|---|
-| `api/status.php` | GET | Version, FFmpeg info, encoder/GPU capabilities |
+| `api/status.php` | GET | Version, FFmpeg info, downloader availability, encoder/GPU capabilities |
 | `api/upload.php` | POST | Multipart upload (`files[]`) |
 | `api/jobs.php` | GET/POST/DELETE | List, create, clear jobs |
 | `api/job.php?id=…` | GET/DELETE | Job status + log / delete |

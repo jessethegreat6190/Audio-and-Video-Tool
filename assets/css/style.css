@@ -222,6 +222,17 @@ input:disabled, select:disabled { opacity: .45; cursor: not-allowed; }
 .message.error { color: var(--err); }
 .message.success { color: var(--ok); }
 
+/* Plain-language rule shown above the Social Video form. */
+.rule-note {
+    border-left: 3px solid var(--accent);
+    background: var(--panel-2);
+    color: var(--text);
+    padding: 10px 12px;
+    margin: 12px 0;
+    font-size: .85rem;
+    border-radius: var(--radius);
+}
+
 .queue {
     background: var(--panel);
     border: 1px solid var(--line);

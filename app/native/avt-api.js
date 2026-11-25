@@ -305,6 +305,7 @@
                 app: 'Audio and Video Tool', version: '0.3.0 (Android)',
                 php: 'On-device', php_binary: 'native',
                 ffmpeg: true, ffprobe: false, ffmpeg_version: 'FFmpegKit (bundled)',
+                ytdlp: false,
                 encoders: {}, gpu: { nvenc: false, qsv: false, amf: false },
                 directories: DIRS
             });
@@ -336,6 +337,9 @@
             if (method === 'GET') return response(200, { jobs: load(LS.jobs) });
             if (method === 'DELETE') { save(LS.jobs, []); return response(200, { ok: true }); }
             if (method === 'POST') {
+                if (body.type === 'social') {
+                    return err('Link downloading is not available in the phone app yet. Use the Windows app or the web app on a computer.');
+                }
                 if (!body.files || !body.files.length) return err('At least one file is required');
                 var job = Object.assign({
                     id: uid('job'), state: 'queued', progress: 0, speed: '',

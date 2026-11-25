@@ -3,6 +3,7 @@
 
 require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/jobs.php';
+require_once __DIR__ . '/social.php';
 
 /** Actually initialise an encoder on a 1-frame test. A listed encoder can still fail without a GPU/driver. */
 function avt_encoder_works($encoder)
@@ -444,24 +445,29 @@ function avt_media_job($job, $encoders)
 
 function avt_run_job($job)
 {
-    $encoders = avt_encoders();
     $type = $job['type'];
     avt_log($job['id'], 'Starting job type: ' . $type);
 
-    if ($type === 'video') {
-        $result = avt_encode_video($job, $encoders);
-    } elseif ($type === 'audio') {
-        $result = avt_encode_audio($job);
-    } elseif ($type === 'custom') {
-        $result = avt_custom_job($job);
-    } elseif ($type === 'health') {
-        $result = avt_health_job($job);
-    } elseif ($type === 'benchmark') {
-        $result = avt_benchmark_job($job);
-    } elseif ($type === 'media') {
-        $result = avt_media_job($job, $encoders);
+    if ($type === 'social') {
+        $result = avt_social_job($job);
     } else {
-        $result = array(false, 'Unknown job type', null);
+        $encoders = avt_encoders();
+
+        if ($type === 'video') {
+            $result = avt_encode_video($job, $encoders);
+        } elseif ($type === 'audio') {
+            $result = avt_encode_audio($job);
+        } elseif ($type === 'custom') {
+            $result = avt_custom_job($job);
+        } elseif ($type === 'health') {
+            $result = avt_health_job($job);
+        } elseif ($type === 'benchmark') {
+            $result = avt_benchmark_job($job);
+        } elseif ($type === 'media') {
+            $result = avt_media_job($job, $encoders);
+        } else {
+            $result = array(false, 'Unknown job type', null);
+        }
     }
 
     if ($result[0] && !empty($job['options']['dest'])) {

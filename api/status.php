@@ -23,6 +23,7 @@ avt_json(array(
     'ffmpeg' => is_file(FFMPEG_BINARY),
     'ffprobe' => is_file(FFPROBE_BINARY),
     'ffmpeg_version' => avt_ffmpeg_version(),
+    'ytdlp' => is_file(YTDLP_BINARY) || (bool) avt_run(YTDLP_BINARY, array('--version'), 20)[0],
     'encoders' => $available,
     'gpu' => array(
         'nvenc' => $available['h264_nvenc'] || $available['hevc_nvenc'],

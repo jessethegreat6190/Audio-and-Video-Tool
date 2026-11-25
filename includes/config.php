@@ -30,6 +30,13 @@ $defaultFfprobe = IS_WINDOWS
 define('FFMPEG_BINARY', getenv('FFMPEG_BINARY') ?: $defaultFfmpeg);
 define('FFPROBE_BINARY', getenv('FFPROBE_BINARY') ?: $defaultFfprobe);
 
+// Free, open-source downloader used by the Social Video tab.
+$defaultYtdlp = IS_WINDOWS
+    ? BASE_PATH . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'yt-dlp.exe'
+    : 'yt-dlp';
+define('YTDLP_BINARY', getenv('YTDLP_BINARY') ?: $defaultYtdlp);
+define('YTDLP_DIR', dirname(YTDLP_BINARY));
+
 foreach (array(UPLOAD_DIR, OUTPUT_DIR, LOG_DIR, JOBS_DIR, PASS_DIR) as $dir) {
     if (!is_dir($dir)) {
         @mkdir($dir, 0755, true);

@@ -4,7 +4,7 @@
 **Working codename:** VidCrunch (optional brand name)
 **Location:** `C:\xampp\htdocs\audio-and-video-tool`
 **Local URL:** `http://localhost/audio-and-video-tool/`
-**Current status:** Steps 1–21 complete and tested. Web app (PHP) + Windows EXE + Android APK all built from the same UI.
+**Current status:** Steps 1–22 complete and tested. Web app (PHP) + Windows EXE + Android APK all built from the same UI.
 
 ---
 
@@ -152,6 +152,7 @@ Rebuild with `npm install && npm run dist:exe` (Windows) and `npm run cap:sync`,
 | 19 | Static frontend copy + native API shim | **DONE** | `app/copy-web.js` builds `app/www/` from `index.php` + `assets/`, strips PHP tags, copies `native/avt-api.js`, and injects a `fetch()` shim into the copied `app.js`. On Android the shim implements every API endpoint on-device with Capacitor Filesystem + FFmpegKit; upload captures media duration so the percentage bar works. |
 | 20 | Windows EXE build | **DONE** | Electron main process starts the Node server on a free `127.0.0.1` port with data in `%APPDATA%/Audio and Video Tool/data`. electron-builder produces **NSIS Setup** and **portable** EXEs with `bin/ffmpeg.exe` + `ffprobe.exe` bundled. `npm run dist:exe` builds both with distinct filenames (see `app/build-exe.js`). Smoke tested the portable build: valid H.264 output, 100% progress. |
 | 21 | Android APK build | **DONE** | Capacitor 5 + `@capacitor/filesystem`, patched `capacitor-ffmpeg-kit` (promise resolution + time-based progress) and `@capacitor-community/file-opener`. FFmpegKit 6.0.LTS comes from a public mirror because Maven Central removed it. Android SDK cmdline-tools + platform 33 + build-tools 33.0.2 installed locally; signed release APK built and verified (FFmpeg `.so` libs for arm64-v8a + armeabi-v7a present, signature valid). Folder watching is intentionally unavailable in the mobile sandbox. |
+| 22 | Social Video downloader | **DONE** | Added free yt-dlp 2026.11.23 to `bin/` (23.6 MB). New "Social Video" tab: paste link, choose best / 720p / 480p / audio-only MP3; same big progress bar and queue; output saved in `outputs/`. Visible rule: only download your own videos or videos you are allowed to save. Added `includes/social.php` (PHP worker) and `runSocial()` in `app/lib/encoder.js` (Node worker) with file-based progress parsing so Windows cannot deadlock. Status endpoint reports `ytdlp`. EXE packaging includes `yt-dlp.exe`; Android shim rejects social jobs with a clear message. Tested end-to-end in PHP and Node with a CC0 sample link: job `state=done`, `progress=100%`, valid MP4 saved. Live TikTok check succeeded: yt-dlp solved TikTok's JS challenge and reached the video feed (the test used a whole profile page, so it was stopped after 23 pages). Single-video links should work; some sites may still ask for your own login cookie. |
 
 ### Bugs found and fixed during testing
 1. **Encoder detection** matched only QSV encoders (flag class missed `D`, `F`, `X`, `B`; legend line captured `=`). Fixed regex + name validation.

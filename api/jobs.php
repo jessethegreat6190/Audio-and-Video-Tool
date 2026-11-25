@@ -11,12 +11,21 @@ if ($method === 'GET') {
 if ($method === 'POST') {
     $body = avt_json_body();
     $type = avt_clean($body['type'] ?? '', 40);
-    $allowed = array('video', 'audio', 'custom', 'health', 'benchmark', 'media');
+    $allowed = array('video', 'audio', 'custom', 'health', 'benchmark', 'media', 'social');
     if (!in_array($type, $allowed, true)) {
         avt_json(array('error' => 'Unknown job type'), 400);
     }
     $files = array();
     foreach (($body['files'] ?? array()) as $file) {
+        // A social job has no uploaded file; its "name" is just the link for display.
+        if ($type === 'social') {
+            $files[] = array(
+                'name' => avt_clean($file['name'] ?? 'Video link', 300),
+                'stored' => '',
+                'size' => 0,
+            );
+            continue;
+        }
         if (empty($file['stored']) || !avt_path_inside($file['stored'], UPLOAD_DIR)) {
             avt_json(array('error' => 'Invalid uploaded file path'), 400);
         }
