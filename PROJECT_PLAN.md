@@ -167,3 +167,9 @@ Rebuild with `npm install && npm run dist:exe` (Windows) and `npm run cap:sync`,
 - PHP logic goes in `api/` and `includes/`.
 - Update this document after each step: mark the step DONE and set the next step to NEXT.
 - Keep changes small and reversible so we can edit "here and there".
+
+## 10. Live streaming support log
+
+| Date | Task | Status | Notes |
+|---|---|---|---|
+| 26 Nov 2026 | Reset OBS NDI source to clean defaults | **DONE** | Reset the DistroAV input `NDI® Source 2` while OBS stayed open. Kept the sender name `TOKOIVAN24 (FreeShow NDI - LIVE)`, cleared the extra `DistroAV - Fix alpha blending` filter, and set both Preview and Program to scene `MAIN`. The OBS log confirms defaults: Bandwidth `0` (Highest), Behaviour `2`, Sync `2`, Colour range `1`, Colour space `2`, Latency `0`, no alpha filter. No account password or stream key was changed. |
